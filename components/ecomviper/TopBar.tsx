@@ -22,7 +22,7 @@ interface TopBarProps {
 export default function TopBar({
   breadcrumbs,
   searchPlaceholder = "Search product reasoning nodes...",
-  userLabel = "Ariel Viper",
+  userLabel = "User",
   searchValue,
   onSearchChange,
   mobileMenuItems,
