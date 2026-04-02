@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install-and-build:
+    name: install-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+  changed-files-sanity:
+    name: changed-files-sanity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Block committed junk files
+        shell: bash
+        run: |
+          set -euo pipefail
+          blocked_patterns=(
+            '.env'
+            '.env.*'
+            'node_modules/**'
+            '.next/**'
+            'dist/**'
+            'build/**'
+            '*.log'
+            '.DS_Store'
+            'Thumbs.db'
+            '*.swp'
+            '*.swo'
+          )
+
+          hits=()
+          for pattern in "${blocked_patterns[@]}"; do
+            while IFS= read -r path; do
+              [ -n "${path}" ] && hits+=("${path}")
+            done < <(git ls-files "${pattern}")
+          done
+
+          if [ "${#hits[@]}" -gt 0 ]; then
+            printf 'Blocked files detected:\n'
+            printf ' - %s\n' "${hits[@]}" | sort -u
+            exit 1
+          fi
+
+          echo "No blocked committed junk files found."
