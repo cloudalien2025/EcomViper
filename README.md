@@ -61,3 +61,5 @@ Some integrations and API flows require external service accounts and provider-s
 ## Security
 - Never commit `.env*` files, credentials, tokens, or private keys.
 - Use placeholder/example values in docs and sample configs only.
+
+Temporary validation note: Pull requests are validated by required CI checks.
