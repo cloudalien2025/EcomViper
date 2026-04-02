@@ -2,8 +2,6 @@ import type { NextRequest } from "next/server";
 import crypto from "crypto";
 import { query } from "./db";
 
-const DEFAULT_USER_ID = "00000000-0000-4000-8000-000000000001";
-
 function normalizeUuid(value: string | null): string | null {
   if (!value) return null;
   const trimmed = value.trim().toLowerCase();
@@ -26,6 +24,14 @@ type HeaderReader = {
   get(name: string): string | null;
 };
 
+function resolveFallbackUserId(seed?: string | null): string {
+  const envUserId = normalizeUuid(
+    process.env.DEFAULT_USER_ID ?? process.env.BRAINS_USER_ID ?? null
+  );
+  if (envUserId) return envUserId;
+  return deriveDeterministicUuid(`fallback:${seed ?? process.env.HOSTNAME ?? "auth-neutral"}`);
+}
+
 export function resolveUserIdFromHeaders(headers: HeaderReader): string {
   const fromHeader = normalizeUuid(headers.get("x-user-id"));
   if (fromHeader) return fromHeader;
@@ -40,11 +46,11 @@ export function resolveUserIdFromHeaders(headers: HeaderReader): string {
     return deriveDeterministicUuid(externalIdRaw);
   }
 
-  return DEFAULT_USER_ID;
+  return resolveFallbackUserId(headers.get("x-forwarded-host") ?? headers.get("host"));
 }
 
 export function resolveUserId(req?: NextRequest): string {
-  if (!req) return DEFAULT_USER_ID;
+  if (!req) return resolveFallbackUserId("no-request");
   const fromHeader = normalizeUuid(req.headers.get("x-user-id"));
   if (fromHeader) return fromHeader;
   const fromSearch = normalizeUuid(req.nextUrl.searchParams.get("user_id"));
@@ -60,7 +66,7 @@ export function resolveUserId(req?: NextRequest): string {
     return deriveDeterministicUuid(externalIdRaw);
   }
 
-  return DEFAULT_USER_ID;
+  return resolveFallbackUserId(req.nextUrl.host);
 }
 
 export async function ensureUser(userId: string): Promise<void> {
