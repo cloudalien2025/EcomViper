@@ -48,6 +48,7 @@ INTEGRATIONS_ENCRYPTION_KEY="<32-byte-base64-or-hex-key>"
 SHOPIFY_CLIENT_ID="<shopify-client-id>"
 SHOPIFY_CLIENT_SECRET="<shopify-client-secret>"
 APP_BASE_URL="http://localhost:3000"
+ECOMVIPER_ENTITLED_BRAINS_DEFAULT="<comma-separated-brain-ids>"
 ```
 
 Some integrations and API flows require external service accounts and provider-side configuration.

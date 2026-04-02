@@ -109,10 +109,7 @@ export function isAdminUser(user?: EntitlementUser): boolean {
 }
 
 export function resolveDefaultEntitledBrains(): Set<BrainId> {
-  const csv =
-    process.env.ECOMVIPER_ENTITLED_BRAINS_DEFAULT?.trim() ||
-    process.env.IBRAINS_ENTITLED_BRAINS_DEFAULT?.trim() ||
-    DEFAULT_ENTITLED_BRAINS;
+  const csv = process.env.ECOMVIPER_ENTITLED_BRAINS_DEFAULT?.trim() || DEFAULT_ENTITLED_BRAINS;
   return toEntitlementSet(splitCsv(csv));
 }
 
